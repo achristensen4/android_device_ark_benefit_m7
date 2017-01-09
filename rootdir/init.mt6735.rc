@@ -174,9 +174,9 @@ on post-fs-data
     chmod 444 /etc/radvd/radvd.conf
 
     # Mali 3D GPU driver
-    #insmod /system/lib/modules/mali.ko
+    insmod /system/lib/modules/mali.ko
     chmod 666 /dev/mali0
-    #chown system graphics /dev/mali
+    chown system graphics /dev/mali
 
 
 
@@ -207,13 +207,13 @@ on post-fs-data
     mkdir /data/misc/rtc 0770 system system
 
     # M4U
-    #insmod /system/lib/modules/m4u.ko
-    #mknod /dev/M4U_device c 188 0
+    insmod /system/lib/modules/m4u.ko
+    mknod /dev/M4U_device c 188 0
     chmod 0444 /dev/m4u
-    #chown system media /dev/M4U_device
+    chown system media /dev/M4U_device
 
     #set mlock limit to infinate (for m4u operation)
-    setrlimit 8 -1 -1
+    setrlimit 8 20 40
 
     # CMDQ
     chmod 0640 /dev/mtk_cmdq
@@ -324,14 +324,14 @@ on post-fs-data
     chown root radio /sys/devices/platform/Accdet_Driver/driver/accdet_call_state
 
     #VideoCodec
-    #insmod /system/lib/modules/vcodec_kernel_driver.ko
+    insmod /system/lib/modules/vcodec_kernel_driver.ko
     mknod /dev/Vcodec c 160 0
     chmod 0660 /dev/Vcodec
     chown system media /dev/Vcodec
 
     #MJC
-    #insmod /system/lib/modules/mjc_kernel_driver.ko
-    #mknod /dev/MJC c 168 0
+    insmod /system/lib/modules/mjc_kernel_driver.ko
+    mknod /dev/MJC c 168 0
     chmod 0660 /dev/MJC
     chown system media /dev/MJC
 
@@ -487,7 +487,7 @@ on post-fs-data
     chmod 0664 /dev/hdmitx
 
     # JPEG
-    #chmod 0444 /dev/mtk_jpeg
+    chmod 0444 /dev/mtk_jpeg
 
     # almk
     chmod 0440 /dev/mtk_almk
@@ -733,13 +733,12 @@ on property:vold.decrypt=trigger_shutdown_framework
 
 service stop_modem /system/bin/md_ctrl 0
     class main
-    disabled
     oneshot
 
 service start_modem /system/bin/md_ctrl 1
     class main
-    disabled
     oneshot
+    
 # Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
     setprop net.tcp.buffersize.default 4096,87380,524288,4096,16384,524288
@@ -760,14 +759,12 @@ on property:persist.uartconsole.enable=1
     write /proc/mtprintk 1
 
 service fuse_usbotg /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbotg /storage/usbotg
-    class late_start
-    disabled
+    class main
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
         -o /data/data/com.android.shell/files/bugreports/bugreport
     class main
-    disabled
     oneshot
     keycodes 114 115 116
 
@@ -787,7 +784,6 @@ service atci_service /system/bin/atci_service
     socket atci-service stream 660 radio system
     socket atci-serv-fw stream 660 radio system
     user root
-    disabled
     group radio system
 
 service atcid-daemon-u /system/bin/atcid
@@ -795,7 +791,6 @@ service atcid-daemon-u /system/bin/atcid
     socket adb_atci_socket stream 660 radio system
     user system
     group radio system media
-    disabled
     oneshot
 
 service atcid-daemon-e /system/bin/atcid
@@ -803,7 +798,6 @@ service atcid-daemon-e /system/bin/atcid
     socket adb_atci_socket stream 660 radio system
     user root
     group radio system
-    disabled
     oneshot
 
 on property:persist.service.atci.usermode=1
@@ -817,7 +811,6 @@ service audio-daemon /system/bin/audiocmdservice_atci
     class main
     socket atci-audio stream 660 root system
     user root
-    disabled
     oneshot
 
 service pq /system/bin/pq
@@ -845,11 +838,10 @@ service p2p_supplicant /system/bin/wpa_supplicant \
     -O/data/misc/wifi/sockets -g@android:wpa_wlan0
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
-    #   user wifi
-    #   group wifi inet keystore
+    user wifi
+    group wifi inet keystore
     class main
     socket wpa_wlan0 dgram 660 wifi wifi
-    disabled
     oneshot
 
 service wpa_supplicant /system/bin/wpa_supplicant \
@@ -858,11 +850,10 @@ service wpa_supplicant /system/bin/wpa_supplicant \
     -O/data/misc/wifi/sockets -g@android:wpa_wlan0
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
-    #   user wifi
-    #   group wifi inet keystore
+    user wifi
+    group wifi inet keystore
     class main
     socket wpa_wlan0 dgram 660 wifi wifi
-    disabled
     oneshot
 # For WiFi High Speed calibration
 service autokd /system/bin/autokd
@@ -879,7 +870,6 @@ service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
     class main
     user root
     group net_admin net_raw
-    disabled
     oneshot
 
 
@@ -888,50 +878,42 @@ service dhcpcd_wlan0 /system/bin/dhcpcd -aABKL
     class main
 	user root
 	group net_admin net_raw
-    disabled
     oneshot
 
 service dhcpcd_p2p /system/bin/dhcpcd -aABKL
     class main
 	user root
 	group net_admin net_raw
-    disabled
     oneshot
 
 service iprenew_wlan0 /system/bin/dhcpcd -n
     class main
 	user dhcp
 	group net_admin net_raw
-    disabled
     oneshot
 
 service iprenew_p2p /system/bin/dhcpcd -n
     class main
 	user dhcp
 	group net_admin net_raw
-    disabled
     oneshot
 
 service dhcp_inform /system/bin/dhcpcd -s -BK -A
     class main
     user root
     group system radio dhcp net_admin net_raw
-    disabled
     oneshot
 
 service dhcpv6_inform /system/bin/dhcp6c -c "/etc/wide-dhcpv6/dhcp6cSIP.conf" -fi
     class main
     user root
     group system radio dhcp net_admin net_raw
-    disabled
     oneshot
 
 service dhcp6cDNS_wlan0 /system/bin/dhcp6c -c "/etc/wide-dhcpv6/dhcp6cDNS.conf" -f wlan0
-	disabled
 	oneshot
 
 service dhcp6c_wlan0 /system/bin/dhcp6c -c "/etc/wide-dhcpv6/dhcp6c.conf" -f wlan0
-    disabled
     oneshot
 
 on property:service.dhcp6c_wlan0.enable=0
@@ -941,7 +923,6 @@ on property:service.dhcp6c_wlan0.enable=1
     start dhcp6c_wlan0
 
 service dhcp6c_PD /system/bin/dhcp6c -c "/etc/wide-dhcpv6/dhcp6cPD.conf" -f
-	disabled
 	oneshot
 
 # write proc for test sim
@@ -982,10 +963,9 @@ service bluetoothd /system/bin/bluetoothd -n
     # init.rc does not yet support applying capabilities, so run as root and
     # let bluetoothd drop uid to bluetooth with the right linux capabilities
     group bluetooth net_bt_admin misc
-    disabled
 
 service mtkbt /system/bin/mtkbt
-    class late_start
+    class main
 	socket bt.int.adp dgram 660 bluetooth net_bt
 	socket bt.a2dp.stream dgram 660 bluetooth net_bt
 	user bluetooth
@@ -993,9 +973,9 @@ service mtkbt /system/bin/mtkbt
 	oneshot
 
 
-#service dpfd /system/bin/dpfd
-#	user root
-#	group system media
+service dpfd /system/bin/dpfd
+user root
+group system media
 
 #
 #  External Modme control related services
@@ -1004,10 +984,9 @@ service mtkbt /system/bin/mtkbt
 #
 #  Modem related services (Begin)
 #
-service pppd_gprs /system/bin/pppd_dt /dev/ttyACM0 debug noauth refuse-eap usepeerdns nodetach
+service pppd_gprs /system/bin/pppd_dt /dev/ttyACM0 debug usepeerdns nodetach
     user root
     group radio cache inet misc
-    disabled
     oneshot
 
 #
@@ -1037,69 +1016,57 @@ service msensord /system/bin/msensord
     oneshot
 
 service s62xd /system/bin/s62xd
-    disabled
     user compass
     group system
     class main
 service ami304d /system/bin/ami304d
     user system
     group system
-    disabled
     class main
 
 service memsicd /system/bin/memsicd
-     disabled
     user system
     group system
     class main
 
 service memsicd3416x /system/bin/memsicd3416x
-     disabled
 	 user system
     group system
     class main
 service akmd8975 /system/bin/akmd8975
-    disabled
     user system
     group system
     class main
 
 service akmd8963 /system/bin/akmd8963
-    disabled
     user system
     group system
     class main
 
 service akmd09911 /system/bin/akmd09911
-    disabled
     user system
     group system
     class main
 service bmm050d /system/bin/bmm050d
-    disabled
     user system
     group system
     class main
 
 service mc6420d /system/bin/mc6420d
-    disabled
     user system
     group system
     class main
 
 service orientationd /system/bin/orientationd
-    disabled
     user system
     group system input
     class main
 service AcdApiDaemon /system/bin/AcdApiDaemon
-    disabled
     user system
     group system
     class main
 
 service geomagneticd /system/bin/geomagneticd
-    disabled
     user system
     group system input
     class main
@@ -1164,11 +1131,11 @@ chmod 777 /etc/ppp/ip-down-ppp0
 
 #set the property of persiste.radio.reset_on_switch
 setprop persist.radio.reset_on_switch true
-#end
+end
 
 #set the property of rild.mark_switchuser
 setprop rild.mark_switchuser 0
-#end
+end
 
 chown root /system/bin/pppd
 chmod 4755 /system/bin/pppd
