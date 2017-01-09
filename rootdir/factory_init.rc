@@ -2,7 +2,7 @@ on init
 
 sysclktz 0
 
-loglevel 0
+loglevel 3
 
 # Backward compatibility
     symlink /system/etc /etc
@@ -54,12 +54,13 @@ loglevel 0
     mount tmpfs tmpfs /mnt/obb mode=0755,gid=1000
 
     write /proc/sys/kernel/panic_on_oops 1
-    write /proc/sys/kernel/hung_task_timeout_secs 0
+    write /proc/sys/kernel/hung_task_timeout_secs 30
     write /proc/cpu/alignment 4
     write /proc/sys/kernel/sched_latency_ns 10000000
     write /proc/sys/kernel/sched_wakeup_granularity_ns 2000000
     write /proc/sys/kernel/sched_compat_yield 1
     write /proc/sys/kernel/sched_child_runs_first 0
+    write /proc/sys/kernel/randomize_va_space 2
 
     # Healthd can trigger a full boot from charger mode by signaling this
     # property when the power button is held.
@@ -114,7 +115,7 @@ on fs
 
 on post-fs
     # once everything is setup, no need to modify /
-    mount rootfs rootfs / ro remount
+    mount rootfs rootfs / rw remount
     chown system system /system/data
     mkdir /system/cache 0770 system cache
     # We restorecon /cache in case the cache partition has been reset.
@@ -174,7 +175,7 @@ on post-fs-data
     chown system system /persist
     chmod 0771 /persist
 # create basic filesystem structure
-    #mkdir /data/nvram 2770 root system
+    mkdir /data/nvram 2770 root system
     # We chown/chmod /nvdata again so because mount is run as root + defaults
     chown root system /nvdata
     chmod 2770 /nvdata
@@ -265,19 +266,19 @@ on post-fs-data
     mkdir /data/nvram/md2 0770 root system
 
 #  Build-in Modified - S
-#    insmod /system/lib/modules/ccci_plat.ko
-#    insmod /system/lib/modules/ccci.ko
+     insmod /system/lib/modules/ccci_plat.ko
+     insmod /system/lib/modules/ccci.ko
 #  Build-in Modified - E
-#   chown ccci ccci /sys/class/BOOT/BOOT/boot/md
+    chown ccci ccci /sys/class/BOOT/BOOT/boot/md
     chown radio radio /sys/kernel/ccci/boot
 
     # M4U
-    #insmod /system/lib/modules/m4u.ko
-    #mknod /dev/M4U_device c 188 0
+    insmod /system/lib/modules/m4u.ko
+    mknod /dev/M4U_device c 188 0
     chmod 0444 /dev/M4U_device
     
     #set mlock limit to infinate (for m4u operation)
-    setrlimit 8 -1 -1
+    setrlimit 8 20 40
 
     # Sensor
     chmod 0666 /dev/hwmsensor
@@ -385,8 +386,8 @@ on property:vold.decrypt=trigger_shutdown_framework
 ##
 
 # Update the second boot logo
-# service bootlogoupdater /system/bin/boot_logo_updater
-#    oneshot
+service bootlogoupdater /system/bin/boot_logo_updater
+oneshot
 
 service ueventd /sbin/ueventd
     class core
@@ -403,7 +404,6 @@ service logd /system/bin/logd
 service console /system/bin/sh
     class core
     console
-    disabled
     user shell
     group shell log
     seclabel u:r:shell:s0
@@ -418,24 +418,20 @@ on property:ro.debuggable=1
 service adbd /sbin/adbd --root_seclabel=u:r:su:s0
     class core
     socket adbd stream 660 system system
-    disabled
     seclabel u:r:adbd:s0
 
 service vold /system/bin/vold
     class core
     socket vold stream 0660 root mount
-    ioprio be 2
 
 # One shot invocation to deal with encrypted volume.
 service defaultcrypto /system/bin/vdc --wait cryptfs mountdefaultencrypted
-    disabled
     oneshot
     # vold will set vold.decrypt to trigger_restart_framework (default
     # encryption) or trigger_restart_min_framework (other encryption)
 
 # One shot invocation to encrypt unencrypted volumes
-service encrypt /system/bin/vdc --wait cryptfs enablecrypto inplace default
-    disabled
+service encrypt /system/bin/vdc --wait cryptfs mountdefaultencrypted
     oneshot
     # vold will set vold.decrypt to trigger_restart_framework (default
     # encryption)
@@ -477,14 +473,12 @@ service mdlogger /system/bin/mdlogger
     class main
     user shell
     group shell system radio sdcard_rw inet
-    disabled
     oneshot
     
 service dualmdlogger /system/bin/dualmdlogger
     class main
     user shell
     group shell system radio sdcard_rw inet
-    disabled
     oneshot
 
 service installd /system/bin/installd
@@ -492,24 +486,23 @@ service installd /system/bin/installd
     socket installd stream 600 system system
 
 service factory_no_image /system/bin/logwrapper /system/bin/factory
-    disabled
     oneshot
 
 service factory_with_image /system/bin/logwrapper /sbin/factory
-	disabled
     oneshot
 
 service mobile_log_d /system/bin/mobile_log_d
 	class main
 
-#service hald /system/bin/hald
-#    class main
-#    socket hald stream 0660 root system
+service hald /system/bin/hald
+class main
+socket hald stream 0660 root system
     
-#service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant
-#    group wifi
-#    disabled
-#    oneshot    
+service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant
+group wifi
+oneshot    
+
+
 #
 # Connectivity related services (End)
 #
