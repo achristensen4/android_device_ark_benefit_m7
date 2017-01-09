@@ -4,12 +4,10 @@
 service xlogboot /system/bin/xlog boot
     user root
     oneshot
-    disabled
 
 service xlogdebugchanged /system/bin/xlog debug-changed
     user root
     oneshot
-    disabled
 
 on property:persist.mtk.aee.mode=1
     start xlogdebugchanged
