@@ -12,8 +12,8 @@ on post-fs
     mkdir /data/nvram/md  0770 root system
 
 #  Build-in Modified - S
-#    insmod /system/lib/modules/ccci_plat.ko
-#    insmod /system/lib/modules/ccci.ko
+insmod /system/lib/modules/ccci_plat.ko
+insmod /system/lib/modules/ccci.ko
 #  Build-in Modified - E
     chown radio radio /sys/kernel/ccci/boot
 
