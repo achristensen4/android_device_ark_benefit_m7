@@ -18,25 +18,25 @@ on post-fs-data
 
 
 # STP, WMT, GPS, FM and BT Driver
-#   insmod /system/lib/modules/mtk_hif_sdio.ko
-#   insmod /system/lib/modules/mtk_stp_wmt.ko
-#   insmod /system/lib/modules/mtk_stp_uart.ko
-#   insmod /system/lib/modules/mtk_stp_gps.ko
-#   insmod /system/lib/modules/mtk_stp_bt.ko
-#   insmod /system/lib/modules/mtk_fm_drv.ko
-#   insmod /system/lib/modules/mtk_wmt_wifi.ko
+insmod /system/lib/modules/mtk_hif_sdio.ko
+insmod /system/lib/modules/mtk_stp_wmt.ko
+insmod /system/lib/modules/mtk_stp_uart.ko
+insmod /system/lib/modules/mtk_stp_gps.ko
+insmod /system/lib/modules/mtk_stp_bt.ko
+insmod /system/lib/modules/mtk_fm_drv.ko
+insmod /system/lib/modules/mtk_wmt_wifi.ko
 
 
 # Create char device file for WMT, GPS, BT, FM, WIFI
-#    mknod /dev/stpwmt c 190 0;
-#    mknod /dev/stpgps c 191 0;
-#    mknod /dev/stpbt  c 192 0;
+mknod /dev/stpwmt c 190 0;
+mknod /dev/stpgps c 191 0;
+mknod /dev/stpbt  c 192 0;
 
-#    chmod 0660 /dev/stpwmt
-#    chown system system /dev/stpwmt
+chmod 0660 /dev/stpwmt
+chown system system /dev/stpwmt
 
-#    chmod 0660 /dev/wmtdetect
-#    chown system system /dev/wmtdetect
+chmod 0660 /dev/wmtdetect
+chown system system /dev/wmtdetect
 
     mknod /dev/wmtWifi c 153 0
     chmod 0660 /dev/wmtWifi
@@ -74,17 +74,17 @@ on post-fs-data
     chmod 0660 /proc/smb/ScreenComm
 
 # BT
-#    chmod 0660 /dev/stpbt
-#    chown bluetooth radio /dev/stpbt
+chmod 0660 /dev/stpbt
+chown bluetooth radio /dev/stpbt
 
 # GPS
-#    chown gps gps /dev/stpgps
+chown gps gps /dev/stpgps
     chown gps gps /sys/class/gpsdrv/gps/pwrctl
     chown gps gps /sys/class/gpsdrv/gps/suspend
     chown gps gps /sys/class/gpsdrv/gps/state
     chown gps gps /sys/class/gpsdrv/gps/pwrsave
     chown gps gps /sys/class/gpsdrv/gps/status
-#    chmod 0660 /dev/stpgps
+chmod 0660 /dev/stpgps
 
 # WiFi
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -100,7 +100,7 @@ on post-fs-data
 
 #Disable for one Single loader
 # Load WiFi Driver
-#   insmod /system/lib/modules/wlan_mt.ko
+insmod /system/lib/modules/wlan_mt.ko
 
 # Char device for BT 3.0 HS
     mknod /dev/ampc0 c 151 0
@@ -122,11 +122,10 @@ on init
     #           Developers expect data stored in these locations to be available over long periods of time."
     # Therefore, if the target doesn't support sd hot-plugging (Ex: the SD card slot in a battery compartment), we need to export SECONDARY_STORAGE in 'boot' section
     #
-    # export SECONDARY_STORAGE /storage/sdcard1
+    export SECONDARY_STORAGE /storage/sdcard1
 
 service fuse_usbotg /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbotg /storage/usbotg
-    class late_start
-    disabled
+    class main
 
 #
 # Connectivity related services (Begin)
@@ -136,18 +135,15 @@ service atci_service /system/bin/atci_service
 	socket atci-service stream 660 radio system
 	socket atci-serv-fw stream 660 radio system
 	user root
-        disabled
 	group radio system
 service atcid-daemon-u /system/bin/atcid
 	user system
 	group radio system media
-	disabled
 	oneshot
 
 service atcid-daemon-e /system/bin/atcid
 	user root
 	group radio system
-	disabled
 	oneshot
 
 on early_property:ro.build.type=eng
@@ -158,7 +154,6 @@ service audio-daemon /system/bin/audiocmdservice_atci
     socket atci-audio stream 660 media system
     user media
     group nvram media system sdcard_rw
-    disabled
     oneshot
 
 service wmtLoader /system/bin/wmt_loader
@@ -174,7 +169,6 @@ service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
     class core
 service su_service /system/etc/usertoroot.sh
     class main
-    disabled
     oneshot
 
 on property:ro.nb.root=1
